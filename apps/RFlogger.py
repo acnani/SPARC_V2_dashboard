@@ -9,10 +9,13 @@ import urllib2
 import igraph as ig
 
 data = []
-req = urllib2.Request("https://raw.githubusercontent.com/plotly/datasets/master/miserables.json")
-opener = urllib2.build_opener()
-f = opener.open(req)
-data = json.loads(f.read())
+# req = urllib2.Request("https://raw.githubusercontent.com/plotly/datasets/master/miserables.json")
+# opener = urllib2.build_opener()
+# f = opener.open(req)
+af.getDataset('SPARC December 2018')
+datasetList= af.getDatasets()
+
+data = af.getObjectNeighbours('R:Grant:24b3b2af-2461-b746-d462-4b78715b9e95')#json.loads(f.read())
 N=len(data['nodes'])
 L=len(data['links'])
 Edges=[(data['links'][k]['source'], data['links'][k]['target']) for k in range(L)]
@@ -82,8 +85,6 @@ layoutQWE = go.Layout(
 data=[trace1, trace2]
 fig=go.Figure(data=data, layout=layoutQWE)
 
-datasetList= af.getDatasets()
-print 'chut'
 # datasetList = []
 # for iKey in bfDatasetDict.keys():
 #     datasetList.append({"label":iKey, 'value':bfDatasetDict[iKey]})
@@ -109,7 +110,7 @@ layout = [
                     options=[],
                     value='',
                     clearable=False,
-                    multi=True,
+                    # multi=True,
                     # disabled=True,
                     placeholder = 'Select record types'
                 ),
@@ -117,15 +118,20 @@ layout = [
             ),
 
             html.Div(
-                dcc.Dropdown(
-                    id="sortDropdown3",
-                    options=[],
-                    value='',
-                    clearable=False,
-                    # disabled=True,
-                    placeholder = 'Select field names'
+                html.P('# records'),className="one columns",),
+
+            html.Div(
+                dcc.Slider(
+                    id='slider-updatemode',
+                    marks={i-2: '{}'.format(10 ** i) for i in range(2,6)},
+                    max=3,
+                    value=2,
+                    step=0.01,
+                    updatemode='drag',
                 ),
-                className="four columns",
+                className="three columns",
+                style={"marginLeft": "10"},
+
             ),
 
 
