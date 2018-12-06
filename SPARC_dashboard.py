@@ -12,11 +12,11 @@ app.layout = html.Div(
     [
         html.Div(
             [
-                html.Span("SPARC-DAT Dashboard", className='app-title'),
+                html.Span(u'SPARC-V\u00b2 Dashboard', className='app-title'),
                 html.Div(
-                    html.Img(
-                        src='data:image/png;base64,{}'.format(base64.b64encode(open("R:\users\\amn69\Projects\mdf\SPARC_hackathon\Images\RNEL_logo.png",'rb').read())),height="100%")
-                    ,style={"float": "right", "height": "70%",}
+                    # html.Img(
+                        # src='data:image/png;base64,{}'.format(base64.b64encode(open("R:\users\\amn69\Projects\mdf\SPARC_hackathon\Images\RNEL_logo.png",'rb').read())),height="100%")
+                    # ,style={"float": "right", "height": "70%",}
                 )
             ],
             className="row header"

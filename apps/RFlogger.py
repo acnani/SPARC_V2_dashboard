@@ -82,6 +82,12 @@ layoutQWE = go.Layout(
 data=[trace1, trace2]
 fig=go.Figure(data=data, layout=layoutQWE)
 
+datasetList= af.getDatasets()
+print 'chut'
+# datasetList = []
+# for iKey in bfDatasetDict.keys():
+#     datasetList.append({"label":iKey, 'value':bfDatasetDict[iKey]})
+
 layout = [
     # top controls
     html.Div(
@@ -90,13 +96,9 @@ layout = [
             html.Div(
                 dcc.Dropdown(
                     id="sortDropdown1",
-                    placeholder = 'Select model',
-                    options=[
-                        {"label": "Type 1", "value": 1},
-                        {"label": "Type 2", "value": 2},
-                        {"label": "Type 3", "value": 3},
-                    ],
-                    value='day',
+                    placeholder = 'Select dataset',
+                    options=datasetList,
+                    value=datasetList[-1]['value'],
                     clearable=False,
                 ),
                 className="four columns",
@@ -107,6 +109,7 @@ layout = [
                     options=[],
                     value='',
                     clearable=False,
+                    multi=True,
                     # disabled=True,
                     placeholder = 'Select record types'
                 ),
@@ -206,7 +209,7 @@ layout = [
 #     else:
 #         return 'Download report'
 #
-# # updates left indicator based on df updates
+# updates left indicator based on df updates
 # @app.callback (Output("left_leads_indicator", "children"),
 #               [Input('refreshButton', 'n_clicks'),
 #                Input('sortDropdown1', 'value'),
@@ -389,14 +392,41 @@ layout = [
 #
 #
 #
+@app.callback(
+    Output('sortDropdown2', 'options'),
+    [Input('sortDropdown1', 'value')])
+def dropdown1_callback(value):
+    modelNames = []
+    if value:
+        af.getDataset(value)
+        modelNames = af.getModelsNames()
+
+        return modelNames
+
+@app.callback(
+    Output('sortDropdown2', 'value'),
+    [Input('sortDropdown1', 'value')])
+def dropdown1_callback(value):
+    modelNames = []
+    if value:
+        af.getDataset(value)
+        modelNames = af.getModelsNames()
+    return modelNames[0]['value']
+
 # @app.callback(
-#     Output('sortDropdown2', 'options'),
-#     [Input('sortDropdown1', 'value')])
-# def dropdown1_callback(value):
-#     return af.populateD2(value)
+#     Output('sortDropdown3', 'options'),
+#     [Input('sortDropdown1', 'value'), Input('sortDropdown2', 'value')])
+# def dropdown1_callback(dataset, model):
+#     modelNames = []
+#     if model:
+#         tmp = af.getModelsInfo()
+#
+#         return tmp
 #
 # @app.callback(
-#     Output('sortDropdown2', 'value'),
-#     [Input('sortDropdown1', 'value')])
-# def dropdown1_callback(value):
-#     return af.populateD2(value)[0]['value']
+#     Output('sortDropdown3', 'value'),
+#     [Input('sortDropdown1', 'value'), Input('sortDropdown2', 'value')])
+# def dropdown1_callback(dataset, model):
+#     if model:
+#         tmp = af.getModelsInfo()
+#         return tmp
