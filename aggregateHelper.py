@@ -1,10 +1,13 @@
-%import pymongo
+#import pymongo
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import os
 import base64
 import plotly.graph_objs as go
+
+from blackfynn import Blackfynn
+from blackfynn import Dataset
 
 # # constants
 # mongohost = "localhost"
@@ -38,8 +41,10 @@ trialTypes = {1: 'Static', 2: 'AM', 3: 'FM', 4:'PM', 5: 'MagEst', 6:'Detection',
 
 #
 # global variables holding the blackfynn
-global dcInstance = None
-global dcDataset = None
+global dcInstance
+dcInstance = None
+global dcDataset
+dcDataset = None
 
 # RF map tab
 # def getNumChans(d1, d2):
@@ -469,17 +474,17 @@ def getDataset(id_or_name):
     # set relaod flag to true
     reload = True
     # check if we need to reload
-    if isinstance(dcDataset,Dataset) and
-        ( dcDataset.id == id_or_name or
+    if isinstance(dcDataset,Dataset) and \
+        ( dcDataset.id == id_or_name or \
           dcDataset.name == id_or_name ):
-        reload = false
+        reload = False
     # reload if it needs to
     if reload:
         dcDataset = dcInstance.get_dataset(id_or_name)
     # return dataset object
     return dcDataset
 
-def getModelsName():
+def getModelsNames():
     '''
     return the models present in the dataset
     :return: dictionary with dat core id and name of the models
@@ -492,3 +497,23 @@ def getModelsName():
     # re arrange in the format that we need
     jsonModelNames = {item.id: key for key, item in hModels.items()}
     return jsonModelNames
+
+def getModelsInfo():
+    '''
+    return the models present in the dataset with all their properties
+    :return: dictionary with dat core id and name of the models
+        key = dat core id
+        value = model name and properties
+    '''
+    global dcDataset
+    # retrieve models from dat core
+    hModels = dcDataset.models()
+    # loop on models and builds a dictioknary with model name, id and properties
+    jsonModelsInfo = {}
+    for mName, mObject in hModels.items():
+        jsonModelsInfo[mObject.id] = {
+            'name': mName,
+            'preperties': {pObject.id: {'name': pObject.name, 'type': pObject.type} for pName, pObject in
+                           mObject.schema.items()}
+        }
+    return jsonModelsInfo
