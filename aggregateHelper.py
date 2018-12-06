@@ -595,6 +595,23 @@ def getObjectNeighbours(centerObjectIdName,numberOfObjects=100,numberOfLevels=2)
     }
     # build the list
     [visStruct,temp1,temp2] = _buildNeighbourhood(visStruct,record,numberOfObjects,numberOfLevels)
+    # repackage for iGraph
+    recordToIndex = {}
+    outVisStruct = {
+        'nodes' : [],
+        'links' : []
+    }
+    counter = 0
+    for key, item in visStruct['nodes'].items():
+        outVisStruct['nodes'].append(item)
+        recordToIndex[key] = counter
+        counter += 1
+    for item in visStruct['links']:
+        outVisStruct['links'].append({
+            'source' : recordToIndex[item['source']],
+            'target' : recordToIndex[item['target']]
+        })
+
     return visStruct
 
 
@@ -609,13 +626,11 @@ def _buildNeighbourhood(visStruct,sRec,oCounter,lCounter):
     # full record id
     sDcId = getDcId(sRec)
     # add this record to the visualization list
-    visStruct['node'].append(
-        {
-            'dcId': sDcId,
-            'Name': sRec.type + ' ' + sRec.id,
-            'type': sRec.type
-        }
-    )
+    visStruct['nodes']{sDcId} = {
+        'dcId': sDcId,
+        'Name': sRec.type + ' ' + sRec.id,
+        'type': sRec.type
+    }
     # get all the related nodes through a relationship
     linkedRecords = sRec.get_related()
     # se if we need to select a subset
@@ -626,13 +641,11 @@ def _buildNeighbourhood(visStruct,sRec,oCounter,lCounter):
     # add related record to list
     for dRec in linkedRecordsToBeShown:
         dDcId = getDcId(dRec)
-        visStruct['node'].append(
-            {
-                'dcId': dDcId,
-                'Name': dRec.type + ' ' + dRec.id,
-                'type': dRec.type
-            }
-        )
+        visStruct['nodes'][dDcId] = {
+            'dcId': dDcId,
+            'Name': dRec.type + ' ' + dRec.id,
+            'type': dRec.type
+        }
         visStruct['links'].append(
             {
                 'source': sDcId,
