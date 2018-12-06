@@ -506,7 +506,7 @@ def getModelsNames():
     # retrieve models from dat core
     hModels = dcDataset.models()
     # re arrange in the format that we need
-    jsonModelNames = [{'label': key, 'value': "M:model:"+item.id } for key, item in hModels.items()]
+    jsonModelNames = [{'label': key + "(" + str(item.count) +")", 'value': "M:model:"+item.id } for key, item in hModels.items()]
     return jsonModelNames
 
 def getModelsInfo():
