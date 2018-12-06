@@ -46,6 +46,8 @@ global dcInstance
 dcInstance = None
 global dcDataset
 dcDataset = None
+global mmodels
+models = {}
 
 # RF map tab
 # def getNumChans(d1, d2):
@@ -551,7 +553,7 @@ def getModel(id_or_name):
         # get tobject model
         mObject = dcDataset.get_model(id_or_name)
         # save model in cache
-        models[mObject.name] = mObject
+        models[mObject.display_name] = mObject
         models['M:model:' + mObject.id] = mObject
     return mObject
 
@@ -625,6 +627,9 @@ def _buildNeighbourhood(visStruct,sRec,oCounter,lCounter):
     global dcDataset
     # full record id
     sDcId = getDcId(sRec)
+    visStruct = {}
+    visStruct['nodes'] = []
+    visStruct['links'] = []
     # add this record to the visualization list
     visStruct['nodes']{sDcId} = {
         'dcId': sDcId,
