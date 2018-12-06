@@ -40,7 +40,7 @@ trialTypesOrder = ['Static', 'EMG', 'MagEst', 'Detection', 'Discrimination', 'AM
 trialTypes = {1: 'Static', 2: 'AM', 3: 'FM', 4:'PM', 5: 'MagEst', 6:'Detection', 7:'Discrimination', 15: 'MultiVE', 101: 'EMG'}
 
 
-#
+
 # global variables holding the blackfynn
 global dcInstance
 dcInstance = None
@@ -436,6 +436,9 @@ def getRFtemplate(imgIdx,appendStr=''):
 
     )
 
+
+
+
 def instantiateDatCore():
     '''
     instantiate a dat core object if not already done
@@ -445,10 +448,11 @@ def instantiateDatCore():
     # so we can access it from everywhere
     global dcInstance
     # check if we already have the dat core instance or not
-    if isinstance(dcInstance,Blackfynn):
+    if not isinstance(dcInstance,Blackfynn):
         dcInstance = Blackfynn()
     # return the dcInstance
     return dcInstance
+instantiateDatCore()
 
 def getDatasets():
     '''
@@ -461,7 +465,10 @@ def getDatasets():
     # get all the datasets from dat core
     lDatasets = dcInstance.datasets()
     # refactor them in jason
-    dDatasets = {item.id: item.name for item in lDatasets}
+    dDatasets = [{"label": item.name, 'value':item.id}  for item in lDatasets]
+    # for item in lDatasets:
+    #     datasetList.append({"label":iKey, 'value':bfDatasetDict[iKey]})
+
     return dDatasets
 
 def getDataset(id_or_name):
@@ -472,18 +479,21 @@ def getDataset(id_or_name):
     '''
     global dcInstance
     global dcDataset
-    # set relaod flag to true
-    reload = True
-    # check if we need to reload
-    if isinstance(dcDataset,Dataset) and \
-        ( dcDataset.id == id_or_name or \
-          dcDataset.name == id_or_name ):
-        reload = False
-    # reload if it needs to
-    if reload:
-        dcDataset = dcInstance.get_dataset(id_or_name)
-    # return dataset object
+    if id_or_name:
+        # set relaod flag to true
+        reload = True
+        # check if we need to reload
+        if isinstance(dcDataset,Dataset) and \
+            ( dcDataset.id == id_or_name or \
+              dcDataset.name == id_or_name ):
+            reload = False
+        # reload if it needs to
+        if reload:
+            dcDataset = dcInstance.get_dataset(id_or_name)
+        # return dataset object
+
     return dcDataset
+
 
 def getModelsNames():
     '''
@@ -496,7 +506,7 @@ def getModelsNames():
     # retrieve models from dat core
     hModels = dcDataset.models()
     # re arrange in the format that we need
-    jsonModelNames = { "M:model:"+item.id: key for key, item in hModels.items() }
+    jsonModelNames = [{'label': key, 'value': "M:model:"+item.id } for key, item in hModels.items()]
     return jsonModelNames
 
 def getModelsInfo():
@@ -639,5 +649,4 @@ def _buildNeighbourhood(visStruct,sRec,oCounter,lCounter):
             [visStruct,oCounter,lCounter] = _buildNeighbourhood(visStruct,dRec,oCounter,lCounter)
 
     return visStruct,oCounter,lCounter
-
 
