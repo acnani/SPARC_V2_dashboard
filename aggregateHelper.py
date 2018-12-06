@@ -46,7 +46,7 @@ global dcInstance
 dcInstance = None
 global dcDataset
 dcDataset = None
-global mmodels
+global models
 models = {}
 
 # RF map tab
@@ -511,6 +511,7 @@ def getModelsNames():
     jsonModelNames = [{'label': key + "(" + str(item.count) +")", 'value': "M:model:"+item.id } for key, item in hModels.items()]
     return jsonModelNames
 
+
 def getModelsInfo():
     '''
     return the models present in the dataset with all their properties
@@ -568,6 +569,7 @@ def getRecord(recordId):
     [temp1,modelName,recId] = recordId.split(':')
     # get model
     mObject = getModel(modelName)
+    #mObject = models[modelName]
     # retrieve record
     record = mObject.get(recId)
     return record
@@ -631,7 +633,7 @@ def _buildNeighbourhood(visStruct,sRec,oCounter,lCounter):
     visStruct['nodes'] = []
     visStruct['links'] = []
     # add this record to the visualization list
-    visStruct['nodes']{sDcId} = {
+    visStruct['nodes'][sDcId] = {
         'dcId': sDcId,
         'Name': sRec.type + ' ' + sRec.id,
         'type': sRec.type
