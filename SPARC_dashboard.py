@@ -5,7 +5,7 @@ from aggregateHelper import app
 import aggregateHelper as af
 from dash.dependencies import Input, Output
 import base64
-from apps import RFlogger#, NoteDash, PsychoPhysics
+from apps import RFlogger
 import os
 
 app.layout = html.Div(
