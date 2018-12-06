@@ -580,7 +580,7 @@ def getDcId(record):
     :param record:
     :return:
     '''
-    return 'R:'+record.type+':'+record.id
+    return str('R:'+record.type+':'+record.id)
 
 
 def getObjectNeighbours(centerObjectIdName,numberOfObjects=100,numberOfLevels=2):
@@ -616,7 +616,7 @@ def getObjectNeighbours(centerObjectIdName,numberOfObjects=100,numberOfLevels=2)
             'target' : recordToIndex[item['target']]
         })
 
-    return visStruct
+    return outVisStruct
 
 
 def _buildNeighbourhood(visStruct,sRec,oCounter,lCounter):
@@ -630,12 +630,10 @@ def _buildNeighbourhood(visStruct,sRec,oCounter,lCounter):
     # full record id
     sDcId = getDcId(sRec)
     visStruct = {}
-    visStruct['nodes'] = []
-    visStruct['links'] = []
     # add this record to the visualization list
     visStruct['nodes'][sDcId] = {
         'dcId': sDcId,
-        'Name': sRec.type + ' ' + sRec.id,
+        'name': sRec.type + ' ' + sRec.id,
         'type': sRec.type
     }
     # get all the related nodes through a relationship
@@ -650,7 +648,7 @@ def _buildNeighbourhood(visStruct,sRec,oCounter,lCounter):
         dDcId = getDcId(dRec)
         visStruct['nodes'][dDcId] = {
             'dcId': dDcId,
-            'Name': dRec.type + ' ' + dRec.id,
+            'name': dRec.type + ' ' + dRec.id,
             'type': dRec.type
         }
         visStruct['links'].append(
