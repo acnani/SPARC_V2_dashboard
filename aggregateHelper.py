@@ -8,6 +8,7 @@ import plotly.graph_objs as go
 
 from blackfynn import Blackfynn
 from blackfynn import Dataset
+import random
 
 # # constants
 # mongohost = "localhost"
@@ -495,7 +496,7 @@ def getModelsNames():
     # retrieve models from dat core
     hModels = dcDataset.models()
     # re arrange in the format that we need
-    jsonModelNames = {item.id: key for key, item in hModels.items()}
+    jsonModelNames = { "M:model:"+item.id: key for key, item in hModels.items() }
     return jsonModelNames
 
 def getModelsInfo():
@@ -513,7 +514,130 @@ def getModelsInfo():
     for mName, mObject in hModels.items():
         jsonModelsInfo[mObject.id] = {
             'name': mName,
-            'preperties': {pObject.id: {'name': pObject.name, 'type': pObject.type} for pName, pObject in
-                           mObject.schema.items()}
+            'properties': {
+                'P:' + mName + ':' + pObject.id: {
+                    'name': pObject.name,
+                    'type': pObject.type}
+                for pName, pObject
+                in mObject.schema.items()}
         }
     return jsonModelsInfo
+
+def getModel(id_or_name):
+    '''
+    return the dat core model object
+    :param id_or_name: dat core id or model name
+    :return: model object
+    '''
+    global dcDataset
+    global models
+    # check if we need to load the model or not
+    if id_or_name in models.keys():
+        # model already loaded
+        mObject = models[id_or_name]
+    else:
+        # simplify id is it is a composite one
+        id_or_name = id_or_name.split(':')[-1]
+        # get tobject model
+        mObject = dcDataset.get_model(id_or_name)
+        # save model in cache
+        models[mObject.name] = mObject
+        models['M:model:' + mObject.id] = mObject
+    return mObject
+
+
+def getRecord(recordId):
+    '''
+
+    :param recordId:
+    :return:
+    '''
+    # I assume that the record is in the following format M:<model_name>:<dat_cor_id>
+    [temp1,modelName,recId] = recordId.split(':')
+    # get model
+    mObject = getModel(modelName)
+    # retrieve record
+    record = mObject.get(recId)
+    return record
+
+def getDcId(record):
+    '''
+
+    :param record:
+    :return:
+    '''
+    return 'R:'+record.type+':'+record.id
+
+
+def getObjectNeighbours(centerObjectIdName,numberOfObjects=100,numberOfLevels=2):
+    '''
+    this function retrieves the list of objects that are in the neighbour of the requested object
+    :param centerObjectIdName: name or id of the central object
+    :return: dictionary with list of nodes and relationships
+    '''
+    # retrieve record for center object
+    record = getRecord(centerObjectIdName)
+    # initialize counter and output structure
+    recCounter = 1
+    visStruct = {
+        'nodes' : {},
+        'links' : []
+    }
+    # build the list
+    [visStruct,temp1,temp2] = _buildNeighbourhood(visStruct,record,numberOfObjects,numberOfLevels)
+    return visStruct
+
+
+def _buildNeighbourhood(visStruct,sRec,oCounter,lCounter):
+    '''
+
+    :param sRec:
+    :param oCounter:
+    :return:
+    '''
+    global dcDataset
+    # full record id
+    sDcId = getDcId(sRec)
+    # add this record to the visualization list
+    visStruct['node'].append(
+        {
+            'dcId': sDcId,
+            'Name': sRec.type + ' ' + sRec.id,
+            'type': sRec.type
+        }
+    )
+    # get all the related nodes through a relationship
+    linkedRecords = sRec.get_related()
+    # se if we need to select a subset
+    linkedRecordsToBeShown = linkedRecords
+    if oCounter < len(linkedRecords):
+        linkedRecordsToBeShown = random.sample(linkedRecords, oCounter)
+
+    # add related record to list
+    for dRec in linkedRecordsToBeShown:
+        dDcId = getDcId(dRec)
+        visStruct['node'].append(
+            {
+                'dcId': dDcId,
+                'Name': dRec.type + ' ' + dRec.id,
+                'type': dRec.type
+            }
+        )
+        visStruct['links'].append(
+            {
+                'source': sDcId,
+                'target': dDcId
+            }
+        )
+
+    # update counter
+    oCounter -= len(linkedRecordsToBeShown)
+    lCounter -= 1
+    if oCounter > 0 and lCounter > 1:
+        # add related record to list
+        for dRec in linkedRecordsToBeShown:
+            [visStruct,oCounter,lCounter] = _buildNeighbourhood(visStruct,dRec,oCounter,lCounter)
+
+    return visStruct,oCounter,lCounter
+
+
