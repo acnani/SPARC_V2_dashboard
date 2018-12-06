@@ -1,4 +1,4 @@
-import pymongo
+%import pymongo
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -35,6 +35,11 @@ perceptDescriptors = ["Vibration", "Flutter", "Buzz", "Urge to move", "Touch", "
 trialTypesOrder = ['Static', 'EMG', 'MagEst', 'Detection', 'Discrimination', 'AM', 'FM', 'PM', 'MultiVE']
 trialTypes = {1: 'Static', 2: 'AM', 3: 'FM', 4:'PM', 5: 'MagEst', 6:'Detection', 7:'Discrimination', 15: 'MultiVE', 101: 'EMG'}
 
+
+#
+# global variables holding the blackfynn
+global dcInstance = None
+global dcDataset = None
 
 # RF map tab
 # def getNumChans(d1, d2):
@@ -424,3 +429,66 @@ def getRFtemplate(imgIdx,appendStr=''):
         className="six columns chart_div"
 
     )
+
+def instantiateDatCore():
+    '''
+    instantiate a dat core object if not already done
+    :return: handle to the dat core object
+    '''
+    # we are going to store the instance as a global
+    # so we can access it from everywhere
+    global dcInstance
+    # check if we already have the dat core instance or not
+    if isinstance(dcInstance,Blackfynn):
+        dcInstance = Blackfynn()
+    # return the dcInstance
+    return dcInstance
+
+def getDatasets():
+    '''
+    return a list of the datasets on dat core
+    :return: dictionary with datasets info
+        key   = dat core id
+        value = dataset name
+    '''
+    global dcInstance
+    # get all the datasets from dat core
+    lDatasets = dcInstance.datasets()
+    # refactor them in jason
+    dDatasets = {item.id: item.name for item in lDatasets}
+    return dDatasets
+
+def getDataset(id_or_name):
+    '''
+    retrieve the dat core object for the selected dataset
+    :param id_or_name: dat core id or name of the dataset
+    :return: data core dataset object
+    '''
+    global dcInstance
+    global dcDataset
+    # set relaod flag to true
+    reload = True
+    # check if we need to reload
+    if isinstance(dcDataset,Dataset) and
+        ( dcDataset.id == id_or_name or
+          dcDataset.name == id_or_name ):
+        reload = false
+    # reload if it needs to
+    if reload:
+        dcDataset = dcInstance.get_dataset(id_or_name)
+    # return dataset object
+    return dcDataset
+
+def getModelsName():
+    '''
+    return the models present in the dataset
+    :return: dictionary with dat core id and name of the models
+        key = dat core id
+        value = model name
+    '''
+    global dcDataset
+    # retrieve models from dat core
+    hModels = dcDataset.models()
+    # re arrange in the format that we need
+    jsonModelNames = {item.id: key for key, item in hModels.items()}
+    return jsonModelNames
