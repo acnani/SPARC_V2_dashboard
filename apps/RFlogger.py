@@ -8,7 +8,8 @@ import json
 import urllib2
 import igraph as ig
 
-data = []
+global graphData
+graphData = []
 # req = urllib2.Request("https://raw.githubusercontent.com/plotly/datasets/master/miserables.json")
 # opener = urllib2.build_opener()
 # f = opener.open(req)
@@ -16,15 +17,17 @@ data = []
 
 af.getDataset('SPARC December 2018')
 datasetList= af.getDatasets()
-data = af.getObjectNeighbours('R:Grant:24b3b2af-2461-b746-d462-4b78715b9e95')
-N=len(data['nodes'])
-L=len(data['links'])
-Edges=[(data['links'][k]['source'], data['links'][k]['target']) for k in range(L)]
+graphData = af.getObjectNeighbours('R:Grant:24b3b2af-2461-b746-d462-4b78715b9e95')
+
+N=len(graphData['nodes'])
+L=len(graphData['links'])
+Edges=[(graphData['links'][k]['source'], graphData['links'][k]['target']) for k in range(L)]
 
 G=ig.Graph(Edges, directed=False)
 labels=[]
 group=[]
-for node in data['nodes']:
+dcIds=[]
+for node in graphData['nodes']:
     labels.append(node['name'])
     group.append(node['group'])
 
@@ -32,10 +35,12 @@ layt=G.layout('kk', dim=3)
 Xn=[layt[k][0] for k in range(N)]# x-coordinates of nodes
 Yn=[layt[k][1] for k in range(N)]# y-coordinates
 Zn=[layt[k][2] for k in range(N)]# z-coordinates
+dcIds=[graphData['nodes'][k]['dcId'] for k in range(N)]
 Xe=[]
 Ye=[]
 Ze=[]
 for e in Edges:
+#for e in graphData['links']:
     Xe+=[layt[e[0]][0],layt[e[1]][0], None]# x-coordinates of edge ends
     Ye+=[layt[e[0]][1],layt[e[1]][1], None]
     Ze+=[layt[e[0]][2],layt[e[1]][2], None]
@@ -43,28 +48,37 @@ for e in Edges:
 import plotly.plotly as py
 import plotly.graph_objs as go
 
-trace1=go.Scatter3d(x=Xe,
-               y=Ye,
-               z=Ze,
-               mode='lines',
-               line=dict(color='rgb(125,125,125)', width=1),
-               hoverinfo='none'
-               )
+trace1=go.Scatter3d(
+    x=Xe,
+    y=Ye,
+    z=Ze,
+    mode='lines',
+    line=dict(color='rgb(125,125,125)', width=1),
+    hoverinfo='none'
+)
 
-trace2=go.Scatter3d(x=Xn,
-               y=Yn,
-               z=Zn,
-               mode='markers',
-               name='actors',
-               marker=dict(symbol='circle',
-                             size=7,
-                             color=group,
-                             colorscale='Jet',
-                             line=dict(color='rgb(50,50,50)', width=0.5)
-                             ),
-               text=labels,
-               hoverinfo='text'
-               )
+trace2=go.Scatter3d(
+    x=Xn,
+    y=Yn,
+    z=Zn,
+    mode='markers',
+    name='actors',
+    marker=dict(
+        symbol='circle',
+        size=4,
+        color=group,
+        colorscale='Jet',
+        line=dict(color='rgb(50,50,50)', width=0.5)
+    ),
+    text=labels,
+    customdata=dcIds,
+    hoverinfo='none',
+    projection=dict(
+        x=dict(show=False),
+        y=dict(show=False),
+        z=dict(show=False)
+    )
+)
 
 axis=dict(
     #showbackground=False,
@@ -78,10 +92,10 @@ axis=dict(
 layoutQWE = go.Layout(
     title="Blackfynn Model",
     xaxis=axis,
-    yaxis= axis,
+    yaxis=axis,
     showlegend = False,
     margin={'t':0,'b': 0, 'l':0, 'r':0},
-    hovermode='closest',
+    hovermode=False,
 )
 
 data=[trace1, trace2]
@@ -95,7 +109,6 @@ layout = [
     # top controls
     html.Div(
         [
-
             html.Div(
                 dcc.Dropdown(
                     id="sortDropdown1",
@@ -146,7 +159,7 @@ layout = [
     html.Div(
         [
             af.indicator(
-                "#00cc96", "Unique records", "left_leads_indicator", '12768'
+                "#00cc96", "# Records:", "left_leads_indicator", '12768'
             ),
             af.indicator(
                 "#119DFF", "Clustering coefficient", "middle_leads_indicator", '63.45%'
@@ -162,9 +175,9 @@ layout = [
         [
             html.Div(
                 [
-                    html.P("Blackfynn Model/Dataset"),
+                    html.P("DAT CORE Dataset"),
                     dcc.Graph(
-                        id="map",
+                        id="dataMap",
                         style={"height": "90%", "width": "98%"},
                         config=dict(displayModeBar=False),
                         figure = fig
@@ -175,12 +188,12 @@ layout = [
 
             html.Div(
                 dcc.Textarea(
-                    id='surfaceResponse',
+                    id='recordInfo',
                     style={'width': '100%', 'height': '100%'},
                     value='n/a',
                     # maxLength=50,
                     readOnly=False,
-                    title='Responses entered on Surface',
+                    title='Info for the selected record',
                     draggable=False
                 ),
                 className="four columns chart_div",style=dict(height='65vh')
@@ -438,3 +451,40 @@ def dropdown1_callback(value):
 #     if model:
 #         tmp = af.getModelsInfo()
 #         return tmp
+
+@app.callback(
+    Output('recordInfo', 'value'),
+    [Input('dataMap', 'clickData')])
+def display_click_data(clickData):
+    global graphData
+    # from the point number, gets the dcId
+    try:
+        if 'customdata' in clickData['points'][0]:
+            dcId = clickData['points'][0]['customdata']
+        else:
+            pn = clickData['points'][0]['pointNumber']
+            dcId = graphData['nodes'][pn]['dcId']
+
+        # get record info
+        recordInfo = af.getRecordInfo(dcId)
+        # builds the text
+        recordInfoText = [
+            ' '.join([recordInfo['model'],recordInfo['dcId'].split(':')[-1]]),
+            '-'*40]
+        recordInfoText += ['{:>20s} : {:s}'.format(key,str(value)) for key,value in recordInfo['properties'].items()]
+        recordInfoText.append('-'*40)
+        for key,value in recordInfo['related'].items():
+            recordInfoText.append(key)
+            recordInfoText += ['  '+item for item in value]
+        recordInfoText.append('-'*40)
+        recordInfoText.append('Files')
+        recordInfoText += recordInfo['files']
+    except:
+        #recordInfoText = [
+        #    '----------------------------------',
+        #    'Impossible to retrieve record info',
+        #    '----------------------------------']
+        recordInfoText = clickData
+
+    return json.dumps(recordInfoText, indent=2)
+

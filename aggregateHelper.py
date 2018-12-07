@@ -8,6 +8,7 @@ import plotly.graph_objs as go
 
 from blackfynn import Blackfynn
 from blackfynn import Dataset
+from blackfynn import Record
 import random
 
 # # constants
@@ -375,12 +376,12 @@ def indicator(color, text, id_value, val):
 
             html.P(
                 text,
-                className="twelve columns indicator_text"
+                className="six columns indicator_text"
             ),
             html.P(
                 id=id_value,
                 children = val,
-                className="indicator_value"
+                className="six columns indicator_value"
             ),
         ],
         className="four columns indicator",
@@ -508,7 +509,7 @@ def getModelsNames():
     # retrieve models from dat core
     hModels = dcDataset.models()
     # re arrange in the format that we need
-    jsonModelNames = [{'label': key + "(" + str(item.count) +")", 'value': "M:model:"+item.id } for key, item in hModels.items()]
+    jsonModelNames = [{'label': key + " ( " + str(item.count) +") ", 'value': "M:model:"+item.id } for key, item in hModels.items()]
     return jsonModelNames
 
 
@@ -670,3 +671,44 @@ def _buildNeighbourhood(visStruct,sRec,oCounter,lCounter):
 
     return visStruct,oCounter,lCounter
 
+
+def getRecordInfo(record):
+    '''
+
+    :param record:
+    :return:
+    '''
+    global dcDataset
+    # decide if it needs to retrieve the record or not
+    if not isinstance(record,Record):
+        record = getRecord(record)
+
+    # start building return values
+    outRecordInfo = {
+        'model' : record.type,
+        'dcId' : getDcId(record),
+        'properties' : {},
+        'related' : {},
+        'files' : {}
+    }
+    # transfer properties
+    outRecordInfo['properties'] = {
+        item['name'] : item['value']
+        for item
+        in record.as_dict()['values']}
+    # transfer relationships
+    outRecordInfo['related'] = {
+        key: [
+            getDcId(item2)
+            for item2
+            in item]
+        for key,item
+        in record.get_related(None,True).items()}
+    # transfer files
+    #outRecordInfo['files'] = [".".join([item2.name,item2.type.lower()])+'('+item.id+')' for item in record.get_files() for item2 in item.files]
+    outRecordInfo['files'] = [
+        ".".join([item2.name, item2.type.lower()])
+        for item
+        in record.get_files() for item2 in item.files]
+
+    return outRecordInfo
