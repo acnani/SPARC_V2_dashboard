@@ -9,14 +9,14 @@ import urllib2
 import igraph as ig
 
 data = []
-req = urllib2.Request("https://raw.githubusercontent.com/plotly/datasets/master/miserables.json")
-opener = urllib2.build_opener()
-f = opener.open(req)
-data = json.loads(f.read())
+# req = urllib2.Request("https://raw.githubusercontent.com/plotly/datasets/master/miserables.json")
+# opener = urllib2.build_opener()
+# f = opener.open(req)
+# data = json.loads(f.read())
 
 af.getDataset('SPARC December 2018')
 datasetList= af.getDatasets()
-# data = af.getObjectNeighbours('R:Grant:24b3b2af-2461-b746-d462-4b78715b9e95')
+data = af.getObjectNeighbours('R:Grant:24b3b2af-2461-b746-d462-4b78715b9e95')
 N=len(data['nodes'])
 L=len(data['links'])
 Edges=[(data['links'][k]['source'], data['links'][k]['target']) for k in range(L)]
