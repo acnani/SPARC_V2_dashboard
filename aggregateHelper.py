@@ -663,7 +663,7 @@ def _buildNeighbourhood(visStruct,sRec,oCounter,lCounter):
     # update counter
     oCounter -= len(linkedRecordsToBeShown)
     lCounter -= 1
-    if oCounter > 0 and lCounter > 1:
+    if oCounter > 0 and lCounter >= 1:
         # add related record to list
         for dRec in linkedRecordsToBeShown:
             [visStruct,oCounter,lCounter] = _buildNeighbourhood(visStruct,dRec,oCounter,lCounter)
