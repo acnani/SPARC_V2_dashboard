@@ -599,6 +599,8 @@ def getObjectNeighbours(centerObjectIdName,numberOfObjects=100,numberOfLevels=2)
     }
     # build the list
     [visStruct,temp1,temp2] = _buildNeighbourhood(visStruct,record,numberOfObjects,numberOfLevels)
+    # codify type
+    codeTypes = {item: index for index,item in enumerate(list(set([item['type'] for item in visStruct['nodes'].values()])))}
     # repackage for iGraph
     recordToIndex = {}
     outVisStruct = {
@@ -607,6 +609,7 @@ def getObjectNeighbours(centerObjectIdName,numberOfObjects=100,numberOfLevels=2)
     }
     counter = 0
     for key, item in visStruct['nodes'].items():
+        item['group'] = codeTypes[item['type']]
         outVisStruct['nodes'].append(item)
         recordToIndex[key] = counter
         counter += 1
@@ -629,7 +632,6 @@ def _buildNeighbourhood(visStruct,sRec,oCounter,lCounter):
     global dcDataset
     # full record id
     sDcId = getDcId(sRec)
-    visStruct = {}
     # add this record to the visualization list
     visStruct['nodes'][sDcId] = {
         'dcId': sDcId,
