@@ -26,7 +26,7 @@ labels=[]
 group=[]
 for node in data['nodes']:
     labels.append(node['name'])
-    group.append(node['type'])
+    group.append(node['group'])
 
 layt=G.layout('kk', dim=3)
 Xn=[layt[k][0] for k in range(N)]# x-coordinates of nodes
@@ -66,20 +66,21 @@ trace2=go.Scatter3d(x=Xn,
                hoverinfo='text'
                )
 
-axis=dict(showbackground=False,
-          showline=False,
-          zeroline=False,
-          showgrid=False,
-          showticklabels=False,
-          title=''
-          )
+axis=dict(
+    #showbackground=False,
+    showline=False,
+    zeroline=False,
+    showgrid=False,
+    showticklabels=False,
+    title='' )
+
 
 layoutQWE = go.Layout(
-         title="Blackfynn Model",
-         xaxis=axis,
-         yaxis= axis,
-        showlegend = False,
-        margin={'t':0,'b': 0, 'l':0, 'r':0},
+    title="Blackfynn Model",
+    xaxis=axis,
+    yaxis= axis,
+    showlegend = False,
+    margin={'t':0,'b': 0, 'l':0, 'r':0},
     hovermode='closest',
 )
 
